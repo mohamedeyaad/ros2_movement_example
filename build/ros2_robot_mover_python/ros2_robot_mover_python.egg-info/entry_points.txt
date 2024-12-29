@@ -1,3 +1,0 @@
-[console_scripts]
-mover_node = ros2_robot_mover_python.mover_node:main
-
