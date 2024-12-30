@@ -48,29 +48,37 @@ source install/setup.bash
 
 Navigate to the cloned `robot_urdf` repository and launch the Gazebo simulation:
 ```sh
-ros2 launch gazebo.launch.py
+ros2 launch robot_urdf gazebo.launch.py
 ```
 
 ## Running the Mover Node
+
+### Python Node
 
 Navigate to the `ros2_robot_mover_python` package directory and run the node:
 ```sh
 ros2 run ros2_robot_mover_python mover_node
 ```
 
-## Node Description
+### C++ Node
 
-### MoverNode
-
-- **Publisher**: `/cmd_vel` (geometry_msgs/Twist)
-- **Methods**:
-  - `get_user_input()`: Prompts the user to enter linear and angular velocities.
-  - `move_robot(linear_velocity, angular_velocity)`: Publishes the velocity commands based on user input.
-
-### Example Usage
-
+Switch to the C++ branch:
 ```sh
-ros2 run ros2_robot_mover_python mover_node
+git checkout cpp
 ```
 
-Follow the prompts to enter the desired linear and angular velocities to move the robot in the simulation.
+Navigate to the `ros2_robot_mover_cpp` package directory and run the node:
+```sh
+ros2 run ros2_robot_mover_cpp mover_node
+```
+
+## Node Description
+
+### MoverNode (Python/C++)
+
+- **Publisher**: `/cmd_vel` (geometry_msgs/Twist)
+- **Features**:
+  - Initializes the node and creates a publisher for the `/cmd_vel` topic.
+  - Publishes the current `Twist` message and logs the linear and angular velocities.
+  - Prompts the user to enter linear and angular velocities, updates the `Twist` message, and spins the node.
+  - Publishes the command for 1 second before stopping the robot.
