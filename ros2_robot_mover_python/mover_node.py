@@ -1,59 +1,41 @@
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
-import threading
+import time
 
-
-class MoverNode(Node):
+class RobotMover(Node):
     def __init__(self):
-        super().__init__('mover_node')
-        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
-        self.linear_velocity = 0.0
-        self.angular_velocity = 0.0
-
-        # Start a separate thread for the UI input
-        ui_thread = threading.Thread(target=self.user_input, daemon=True)
-        ui_thread.start()
-
-        # Create a timer to send velocity commands
+        super().__init__('robot_mover')
+        self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
         self.timer = self.create_timer(0.1, self.move_robot)
-        #self.get_logger().info("MoverNode with UI has been started.")
-
-    def user_input(self):
-        """Thread function to take user input."""
-        while True:
-            try:
-                # Wait until both inputs are taken
-                self.linear_velocity, self.angular_velocity = self.get_velocity_input()
-            except ValueError:
-                self.get_logger().error("Invalid input. Please enter numeric values.")
-
-    def get_velocity_input(self):
-        """Collect both linear and angular velocities together."""
-        linear = float(input("Enter linear velocity (x): "))
-        angular = float(input("Enter angular velocity (z): "))
-        return linear, angular
+        self.cmd = Twist()
 
     def move_robot(self):
-        """Publish the velocity commands based on user input."""
-        twist = Twist()
-        twist.linear.x = self.linear_velocity
-        twist.angular.z = self.angular_velocity
-        self.publisher.publish(twist)
-        #self.get_logger().info(f"Published: linear.x = {twist.linear.x}, angular.z = {twist.angular.z}")
-
+        self.publisher_.publish(self.cmd)
+        self.get_logger().info(f'Publishing: Linear={self.cmd.linear.x}, Angular={self.cmd.angular.z}')
+        time.sleep(1)
+        self.cmd = Twist()  # Stop the robot
+        self.publisher_.publish(self.cmd)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MoverNode()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        node.get_logger().info('Node stopped by user.')
-    finally:
-        node.destroy_node()
-        rclpy.shutdown()
+    robot_mover = RobotMover()
 
+    try:
+        while rclpy.ok():
+            try:
+                linear_vel = float(input("Enter linear velocity: "))
+                angular_vel = float(input("Enter angular velocity: "))
+                robot_mover.cmd.linear.x = linear_vel
+                robot_mover.cmd.angular.z = angular_vel
+                rclpy.spin_once(robot_mover)
+            except ValueError:
+                robot_mover.get_logger().error("Invalid input. Please enter numeric values.")
+    except KeyboardInterrupt:
+        pass
+
+    robot_mover.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
