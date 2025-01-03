@@ -53,14 +53,15 @@ ros2 launch robot_urdf gazebo.launch.py
 
 ## Running the Mover Node
 
-### Python Node
+### 1. Python Node
 
 Navigate to the `ros2_robot_mover_python` package directory and run the node:
 ```sh
 ros2 run ros2_robot_mover_python mover_node
 ```
 
-### C++ Node
+### 2. C++ Node
+If you prefer to run the C++ node, follow these steps:
 
 Switch to the C++ branch:
 ```sh
