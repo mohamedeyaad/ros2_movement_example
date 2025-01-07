@@ -79,7 +79,8 @@ ros2 run ros2_robot_mover_cpp mover_node
 
 - **Publisher**: `/cmd_vel` (geometry_msgs/Twist)
 - **Features**:
-  - Initializes the node and creates a publisher for the `/cmd_vel` topic.
-  - Publishes the current `Twist` message and logs the linear and angular velocities.
-  - Prompts the user to enter linear and angular velocities, updates the `Twist` message, and spins the node.
-  - Publishes the command for 1 second before stopping the robot.
+  - Initializes the ROS 2 node and creates a publisher for the `/cmd_vel` topic.
+  - Continuously listens to odometry data `/odom` and logs the robot's position and orientation.
+  - Allows the user to input linear and angular velocities from the terminal.
+  - Publishes the entered velocity commands for **1 second**, during which odometry data is logged.
+  - Automatically stops the robot by publishing zero velocity after 1 second of movement.
