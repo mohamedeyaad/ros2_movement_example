@@ -11,9 +11,11 @@ find_package(ament_cmake REQUIRED)
 # further dependencies manually.
 find_package(geometry_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+
 
 add_executable(mover_node src/mover_node.cpp)
-ament_target_dependencies(mover_node rclcpp geometry_msgs)
+ament_target_dependencies(mover_node rclcpp geometry_msgs nav_msgs) 
 
 target_include_directories(mover_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
