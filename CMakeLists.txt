@@ -14,6 +14,14 @@ find_package(rclcpp REQUIRED)
 find_package(nav_msgs REQUIRED)
 
 
+
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/StopRestart.srv"
+)
+
+
 add_executable(mover_node src/mover_node.cpp)
 ament_target_dependencies(mover_node rclcpp geometry_msgs nav_msgs) 
 
