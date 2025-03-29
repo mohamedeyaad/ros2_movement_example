@@ -34,12 +34,7 @@ public:
      * Initializes the ROS 2 node, creates a publisher for the `/cmd_vel` topic, 
      * and a subscriber for the `/odom` topic.
      */
-    RobotMover() : Node("robot_mover") {
-        // Create publisher and subscriber
-        publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
-        subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
-            "odom", 10, std::bind(&RobotMover::odom_callback, this, std::placeholders::_1));
-    }
+    RobotMover();
 
     /**
      * @brief Main loop for the RobotMover node.
@@ -47,36 +42,7 @@ public:
      * Continuously prompts the user for linear and angular velocities, publishes 
      * these commands, and processes callbacks for odometry data.
      */
-    void run() {
-        while (rclcpp::ok()) {
-            double linear_velocity, angular_velocity;
-
-            // Get user input
-            std::cout << "Enter linear velocity: ";
-            if (!(std::cin >> linear_velocity)) {
-                handle_invalid_input();
-                continue;
-            }
-
-            std::cout << "Enter angular velocity: ";
-            if (!(std::cin >> angular_velocity)) {
-                handle_invalid_input();
-                continue;
-            }
-
-            // Publish velocity commands
-            publish_velocity(linear_velocity, angular_velocity);
-
-            // Move robot for 1 second
-            auto start_time = std::chrono::steady_clock::now();
-            while (std::chrono::steady_clock::now() - start_time < std::chrono::seconds(1)) {
-                rclcpp::spin_some(this->get_node_base_interface()); // Process callbacks 
-            }
-
-            // Stop the robot
-            stop_robot();
-        }
-    }
+    void run();
 
 private:
     /**
@@ -86,14 +52,7 @@ private:
      *
      * @param msg Shared pointer to the received odometry message.
      */
-    void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg) {
-        // Log odometry data
-        auto position = msg->pose.pose.position;
-        auto orientation = msg->pose.pose.orientation;
-        RCLCPP_INFO(this->get_logger(),
-            "Odom: Position=(%.2f, %.2f), Orientation Z=%.2f",
-            position.x, position.y, orientation.z);
-    }
+    void odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg);
 
     /**
      * @brief Publishes velocity commands to the `/cmd_vel` topic.
@@ -101,39 +60,92 @@ private:
      * @param linear The linear velocity to publish.
      * @param angular The angular velocity to publish.
      */
-    void publish_velocity(double linear, double angular) {
-        auto message = geometry_msgs::msg::Twist();
-        message.linear.x = linear;
-        message.angular.z = angular;
-        publisher_->publish(message);
-        RCLCPP_INFO(this->get_logger(), "Publishing: Linear=%.2f, Angular=%.2f", linear, angular);
-    }
+    void publish_velocity(double linear, double angular);
 
     /**
      * @brief Stops the robot by publishing zero velocities.
      */
-    void stop_robot() {
-        auto message = geometry_msgs::msg::Twist();
-        message.linear.x = 0.0;
-        message.angular.z = 0.0;
-        publisher_->publish(message);
-        RCLCPP_INFO(this->get_logger(), "Robot stopped.");
-    }
+    void stop_robot();
 
     /**
      * @brief Handles invalid user input.
      *
      * Clears the input stream and prompts the user to enter valid numeric values.
      */
-    void handle_invalid_input() {
-        std::cerr << "Invalid input. Please enter a numeric value." << std::endl;
-        std::cin.clear(); // Clear the error flag
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
-    }
+    void handle_invalid_input();
 
     rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr publisher_; ///< Publisher for velocity commands.
     rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr subscription_; ///< Subscriber for odometry data.
 };
+
+RobotMover::RobotMover() : Node("robot_mover") {
+    // Create publisher and subscriber
+    publisher_ = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
+    subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(
+        "odom", 10, std::bind(&RobotMover::odom_callback, this, std::placeholders::_1));
+}
+
+void RobotMover::run() {
+    while (rclcpp::ok()) {
+        double linear_velocity, angular_velocity;
+
+        // Get user input
+        std::cout << "Enter linear velocity: ";
+        if (!(std::cin >> linear_velocity)) {
+            handle_invalid_input();
+            continue;
+        }
+
+        std::cout << "Enter angular velocity: ";
+        if (!(std::cin >> angular_velocity)) {
+            handle_invalid_input();
+            continue;
+        }
+
+        // Publish velocity commands
+        publish_velocity(linear_velocity, angular_velocity);
+
+        // Move robot for 1 second
+        auto start_time = std::chrono::steady_clock::now();
+        while (std::chrono::steady_clock::now() - start_time < std::chrono::seconds(1)) {
+            rclcpp::spin_some(this->get_node_base_interface()); // Process callbacks 
+        }
+
+        // Stop the robot
+        stop_robot();
+    }
+}
+
+void RobotMover::odom_callback(const nav_msgs::msg::Odometry::SharedPtr msg) {
+    // Log odometry data
+    auto position = msg->pose.pose.position;
+    auto orientation = msg->pose.pose.orientation;
+    RCLCPP_INFO(this->get_logger(),
+        "Odom: Position=(%.2f, %.2f), Orientation Z=%.2f",
+        position.x, position.y, orientation.z);
+}
+
+void RobotMover::publish_velocity(double linear, double angular) {
+    auto message = geometry_msgs::msg::Twist();
+    message.linear.x = linear;
+    message.angular.z = angular;
+    publisher_->publish(message);
+    RCLCPP_INFO(this->get_logger(), "Publishing: Linear=%.2f, Angular=%.2f", linear, angular);
+}
+
+void RobotMover::stop_robot() {
+    auto message = geometry_msgs::msg::Twist();
+    message.linear.x = 0.0;
+    message.angular.z = 0.0;
+    publisher_->publish(message);
+    RCLCPP_INFO(this->get_logger(), "Robot stopped.");
+}
+
+void RobotMover::handle_invalid_input() {
+    std::cerr << "Invalid input. Please enter a numeric value." << std::endl;
+    std::cin.clear(); // Clear the error flag
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // Discard invalid input
+}
 
 /**
  * @brief Main function for the RobotMover node.
